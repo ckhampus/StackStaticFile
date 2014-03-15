@@ -2,10 +2,12 @@
 
 namespace Hampus\Stack;
 
-use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class StaticFile implements HttpKernelInterface
 {
@@ -19,7 +21,7 @@ class StaticFile implements HttpKernelInterface
 
     protected $headerRules;
 
-    protected $fileServer;
+    protected $fileProvider;
 
     public function __construct(HttpKernelInterface $app, array $options = array())
     {
@@ -30,12 +32,28 @@ class StaticFile implements HttpKernelInterface
 
         $this->headerRules = isset($options['header_rules']) ? $options['header_rules'] : array();
 
-        $this->fileServer = isset($options['file_server']) && is_callable($options['file_server']) ? $options['file_server'] : function ($root, $path) {
+        $this->fileProvider = isset($options['file_provider']) && is_callable($options['file_provider']) ? $options['file_provider'] : $this->defaultFileProvider();
+    }
+
+    public function defaultFileProvider()
+    {
+        return function ($root, $path) {
             $path = realpath(implode('/', array($root, $path)));
 
-            if ($path !== false) {
-                return file_get_contents($path);
-            }
+            try {
+                $file = new File($path, true);
+                $content = file_get_contents($path);
+
+                $response = new Response($content, Response::HTTP_OK);
+                $response->setLastModified(\DateTime::createFromFormat('U', $file->getMTime()));
+                $response->setEtag(sha1_file($file->getPathname()));
+
+                if (!$response->headers->has('Content-Type')) {
+                    $response->headers->set('Content-Type', $file->getMimeType() ?: 'application/octet-stream');
+                }
+
+                return $response;
+            } catch (FileNotFoundException $e) { }
 
             return false;
         };
@@ -64,8 +82,8 @@ class StaticFile implements HttpKernelInterface
             $keep = ($rule == 'all') ||
                     ($rule == 'fonts' && preg_match('/\.(?:ttf|otf|eot|woff|svg)\z/', $path) === 1) ||
                     (strpos($path, $rule) === 0 || strpos($path, '/'.$rule) === 0) ||
-                    (is_array($rule) && preg_match('/\.('.implode('|', $rule).')\z/', $path) === 1) ||
-                    (preg_match($rule, $path) === 1);
+                    // (is_array($rule) && preg_match('/\.('.implode('|', $rule).')\z/', $path) === 1) ||
+                    (@preg_match($rule, $path) === 1);
 
             if ($keep) {
                 $newHeaders[$rule] = $headers;
@@ -84,11 +102,9 @@ class StaticFile implements HttpKernelInterface
                 $path = preg_match('/\/$/', $path) === 1 ? $path . $this->index : $this->urls[$path];
             }
 
-            $content = call_user_func_array($this->fileServer, array($this->root, $path));
+            $response = call_user_func_array($this->fileProvider, array($this->root, $path));
 
-            if ($content !== false) {
-                $response = new Response($content, Response::HTTP_OK);
-
+            if ($response !== false) {
                 foreach ($this->applicationRules($path) as $rule => $newHeaders) {
                     foreach ($newHeaders as $field => $content) {
                         $response->headers->set($field, $content);

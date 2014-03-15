@@ -4,7 +4,6 @@ namespace Hampus\Tests\Stack;
 
 use Hampus\Stack\StaticFile;
 use Stack\CallableHttpKernel;
-use Symfony\Component\HttpKernel\Client;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -108,6 +107,43 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('Hello World!', $response->getContent());
+    }
+    
+    /**
+     * @dataProvider httpHeaderProvider
+     */
+    public function testHeaderRules($options, $path, $expected)
+    {
+        $app = $this->getApp($options);
+
+        $request = Request::create($path);
+        $response = $app->handle($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals($expected, $response->getMaxAge());
+    }
+
+    public function httpHeaderProvider()
+    {
+        $options = array(
+            'urls' => array('/static'),
+            'root' => __DIR__,
+            'header_rules' => array(
+                'all' => array('Cache-Control' => 'public, max-age=100'),
+                'fonts' => array('Cache-Control' => 'public, max-age=200'),
+                '/static/assets/images/' => array('Cache-Control' => 'public, max-age=300'),
+                'static/assets/javascripts' => array('Cache-Control' => 'public, max-age=400'),
+                '/\.(css|erb)\z/' => array('Cache-Control' => 'public, max-age=500'),
+            ),
+        );
+
+        return array(
+            array($options, '/static/assets/index.html', 100),
+            array($options, '/static/assets/fonts/font.eot', 200),
+            array($options, '/static/assets/images/image.png', 300),
+            array($options, '/static/assets/javascripts/app.js', 400),
+            array($options, '/static/assets/stylesheets/app.css', 500),
+        );
     }
 
     protected function getApp(array $options  = array())
