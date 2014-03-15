@@ -112,7 +112,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider httpHeaderProvider
      */
-    public function testHeaderRules($options, $path, $expected)
+    public function testHeaderRules($options, $path, $expected, $mime)
     {
         $app = $this->getApp($options);
 
@@ -121,6 +121,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($expected, $response->getMaxAge());
+        $this->assertEquals($mime, $response->headers->get('Content-Type'));
     }
 
     public function httpHeaderProvider()
@@ -138,11 +139,11 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         );
 
         return array(
-            array($options, '/static/assets/index.html', 100),
-            array($options, '/static/assets/fonts/font.eot', 200),
-            array($options, '/static/assets/images/image.png', 300),
-            array($options, '/static/assets/javascripts/app.js', 400),
-            array($options, '/static/assets/stylesheets/app.css', 500),
+            array($options, '/static/assets/index.html', 100, 'text/html'),
+            array($options, '/static/assets/fonts/font.eot', 200, 'application/vnd.ms-fontobject'),
+            array($options, '/static/assets/images/image.png', 300, 'image/png'),
+            array($options, '/static/assets/javascripts/app.js', 400, 'application/javascript'),
+            array($options, '/static/assets/stylesheets/app.css', 500, 'text/css'),
         );
     }
 

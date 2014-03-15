@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Dflydev\Canal\Analyzer\Analyzer;
 
 class StaticFile implements HttpKernelInterface
 {
@@ -44,12 +45,15 @@ class StaticFile implements HttpKernelInterface
                 $file = new File($path, true);
                 $content = file_get_contents($path);
 
+                $analyzer = new Analyzer;
+                $mimeType = $analyzer->detectFromFilename($path)->asString();
+
                 $response = new Response($content, Response::HTTP_OK);
                 $response->setLastModified(\DateTime::createFromFormat('U', $file->getMTime()));
                 $response->setEtag(sha1_file($file->getPathname()));
 
                 if (!$response->headers->has('Content-Type')) {
-                    $response->headers->set('Content-Type', $file->getMimeType() ?: 'application/octet-stream');
+                    $response->headers->set('Content-Type', $mimeType);
                 }
 
                 return $response;
