@@ -1,5 +1,7 @@
 {
-    "name": "cristianhampus/stack-static",
+    "name": "hampus/stack-static-file",
+    "description": "A PHP port of Rack::Static.",
+    "keywords": ["stack"],
     "license": "MIT",
     "authors": [
         {
