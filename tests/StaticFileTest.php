@@ -108,7 +108,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('Hello World!', $response->getContent());
     }
-    
+
     /**
      * @dataProvider httpHeaderProvider
      */
