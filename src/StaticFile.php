@@ -20,6 +20,8 @@ class StaticFile implements HttpKernelInterface
 
     protected $root;
 
+    protected $disable404;
+
     protected $headerRules;
 
     protected $fileProvider;
@@ -30,6 +32,7 @@ class StaticFile implements HttpKernelInterface
         $this->urls = isset($options['urls']) ? $options['urls'] : array('/favicon.ico');
         $this->index = isset($options['index']) ? $options['index'] : '';
         $this->root = isset($options['root']) ? $options['root'] : '';
+        $this->disable404 = isset($options['disable_404']) ? $options['disable_404'] : false;
 
         $this->headerRules = isset($options['header_rules']) ? $options['header_rules'] : array();
 
@@ -118,7 +121,12 @@ class StaticFile implements HttpKernelInterface
                 return $response;
             }
 
-            throw new NotFoundHttpException();
+            // By default if we can serve a file, but can’t
+            // actually find it we throw an exception.
+            if (!$this->disable404) {
+                throw new NotFoundHttpException();
+            }
+
         }
 
         return $this->app->handle($request, $type, $catch);
