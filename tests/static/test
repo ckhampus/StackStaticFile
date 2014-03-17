@@ -1,1 +1,5 @@
-PHP
+#!/usr/bin/env php
+# -*- php -*-
+<?php
+
+echo "Hello, World!";

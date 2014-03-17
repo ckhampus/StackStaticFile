@@ -2,13 +2,9 @@
 
 namespace Hampus\Stack;
 
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Dflydev\Canal\Analyzer\Analyzer;
 
 class StaticFile implements HttpKernelInterface
 {
@@ -24,7 +20,7 @@ class StaticFile implements HttpKernelInterface
 
     protected $headerRules;
 
-    protected $fileProvider;
+    protected $fileServer;
 
     public function __construct(HttpKernelInterface $app, array $options = array())
     {
@@ -36,34 +32,9 @@ class StaticFile implements HttpKernelInterface
 
         $this->headerRules = isset($options['header_rules']) ? $options['header_rules'] : array();
 
-        $this->fileProvider = isset($options['file_provider']) && is_callable($options['file_provider']) ? $options['file_provider'] : $this->defaultFileProvider();
-    }
+        $this->fileServer = new File($app, $this->root);
 
-    public function defaultFileProvider()
-    {
-        return function ($root, $path) {
-            $path = realpath(implode('/', array($root, $path)));
-
-            try {
-                $file = new File($path, true);
-                $content = file_get_contents($path);
-
-                $analyzer = new Analyzer;
-                $mimeType = $analyzer->detectFromFilename($path)->asString();
-
-                $response = new Response($content, Response::HTTP_OK);
-                $response->setLastModified(\DateTime::createFromFormat('U', $file->getMTime()));
-                $response->setEtag(sha1_file($file->getPathname()));
-
-                if (!$response->headers->has('Content-Type')) {
-                    $response->headers->set('Content-Type', $mimeType);
-                }
-
-                return $response;
-            } catch (FileNotFoundException $e) { }
-
-            return false;
-        };
+        // $this->fileProvider = isset($options['file_provider']) && is_callable($options['file_provider']) ? $options['file_provider'] : $this->defaultFileProvider();
     }
 
     public function overwriteFilePath($path)
@@ -73,7 +44,7 @@ class StaticFile implements HttpKernelInterface
 
     public function routeFile($path)
     {
-        return count(array_filter($this->urls, function ($url) use ($path) { return strpos($path, $url) === 0; })) > 0;
+        return count(array_filter($this->urls, function ($url) use ($path) { return !empty($url) && strpos($path, $url) === 0; })) > 0;
     }
 
     public function canServe($path)
@@ -107,11 +78,13 @@ class StaticFile implements HttpKernelInterface
         if ($this->canServe($path)) {
             if ($this->overwriteFilePath($path)) {
                 $path = preg_match('/\/$/', $path) === 1 ? $path . $this->index : $this->urls[$path];
+                $server = array_merge($request->server->all(), array('REQUEST_URI' => $path));
+                $request = $request->duplicate(null, null, null, null, null, $server);
             }
 
-            $response = call_user_func_array($this->fileProvider, array($this->root, $path));
+            $response = $this->fileServer->handle($request, $type, $catch);
 
-            if ($response !== false) {
+            if ($response->isSuccessful()) {
                 foreach ($this->applicationRules($path) as $rule => $newHeaders) {
                     foreach ($newHeaders as $field => $content) {
                         $response->headers->set($field, $content);
@@ -121,10 +94,8 @@ class StaticFile implements HttpKernelInterface
                 return $response;
             }
 
-            // By default if we can serve a file, but can’t
-            // actually find it we throw an exception.
             if (!$this->disable404) {
-                throw new NotFoundHttpException();
+                return $response;
             }
 
         }

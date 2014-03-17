@@ -20,12 +20,9 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals('PHP', $response->getContent());
+        $this->assertContains('php', $response->getContent());
     }
 
-    /**
-     * @expectedException Symfony\Component\HttpKernel\Exception\NotFoundHttpException
-     */
     public function test404ForKnowRoute()
     {
         $app = $this->getApp(array(
@@ -35,6 +32,8 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::create("/static/foo");
         $response = $app->handle($request);
+
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     public function testDisable404ForKnowRoute()
@@ -69,7 +68,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
     public function testCallsIndexFileWhenRequestingRoot()
     {
         $app = $this->getApp(array(
-            'urls' => array(),
+            'urls' => array(''),
             'root' => __DIR__ . '/static',
             'index' => 'index.html'
         ));
@@ -80,20 +79,16 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('index!', $response->getContent());
 
-        try {
-            $request = Request::create("/other/");
-            $response = $app->handle($request);
-        } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
-            $request = Request::create("/another/");
-            $response = $app->handle($request);
+        $request = Request::create("/other/");
+        $response = $app->handle($request);
 
-            $this->assertEquals(200, $response->getStatusCode());
-            $this->assertEquals('another index!', $response->getContent());
+        $this->assertEquals(404, $response->getStatusCode());
 
-            return;
-        }
+        $request = Request::create("/another/");
+        $response = $app->handle($request);
 
-        $this->fail('An expected exception of "Symfony\Component\HttpKernel\Exception\NotFoundHttpException" has not been raised.');
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('another index!', $response->getContent());
     }
 
     public function testServeHiddenFiles()
@@ -107,7 +102,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals('PHP', $response->getContent());
+        $this->assertContains('php', $response->getContent());
     }
 
     public function testFallbackToNextStackIfURINotSpecified()
@@ -136,7 +131,7 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals($expected, $response->getMaxAge());
-        $this->assertEquals($mime, $response->headers->get('Content-Type'));
+        $this->assertContains($mime, $response->headers->get('Content-Type'));
     }
 
     public function httpHeaderProvider()
