@@ -16,7 +16,7 @@ class StaticFile implements HttpKernelInterface
 
     protected $root;
 
-    protected $disable404;
+    protected $bypass404;
 
     protected $headerRules;
 
@@ -28,13 +28,10 @@ class StaticFile implements HttpKernelInterface
         $this->urls = isset($options['urls']) ? $options['urls'] : array('/favicon.ico');
         $this->index = isset($options['index']) ? $options['index'] : '';
         $this->root = isset($options['root']) ? $options['root'] : '';
-        $this->disable404 = isset($options['disable_404']) ? $options['disable_404'] : false;
 
         $this->headerRules = isset($options['header_rules']) ? $options['header_rules'] : array();
 
         $this->fileServer = new File($app, $this->root);
-
-        // $this->fileProvider = isset($options['file_provider']) && is_callable($options['file_provider']) ? $options['file_provider'] : $this->defaultFileProvider();
     }
 
     public function overwriteFilePath($path)
@@ -84,20 +81,15 @@ class StaticFile implements HttpKernelInterface
 
             $response = $this->fileServer->handle($request, $type, $catch);
 
-            if ($response->isSuccessful()) {
+            if (!$response->isClientError() && !$response->isServerError()) {
                 foreach ($this->applicationRules($path) as $rule => $newHeaders) {
-                    foreach ($newHeaders as $field => $content) {
-                        $response->headers->set($field, $content);
-                    }
+                    $response->headers->add($newHeaders);
                 }
 
                 return $response;
             }
 
-            if (!$this->disable404) {
-                return $response;
-            }
-
+            return $response;
         }
 
         return $this->app->handle($request, $type, $catch);

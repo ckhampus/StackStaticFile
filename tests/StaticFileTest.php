@@ -36,21 +36,6 @@ class StaticFileTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(404, $response->getStatusCode());
     }
 
-    public function testDisable404ForKnowRoute()
-    {
-        $app = $this->getApp(array(
-            'urls' => array('/static'),
-            'root' => __DIR__,
-            'disable_404' => true
-        ));
-
-        $request = Request::create("/static/foo");
-        $response = $app->handle($request);
-
-        $this->assertEquals(200, $response->getStatusCode());
-        $this->assertEquals('Hello World!', $response->getContent());
-    }
-
     public function testFallbackToNextStack()
     {
         $app = $this->getApp(array(
