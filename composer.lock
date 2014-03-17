@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "23e4d39cbf7123041d18f32abb6e9cf4",
+    "hash": "b900d5dca95b1b9ced0cd469726e2ddd",
     "packages": [
         {
             "name": "dflydev/apache-mime-types",
@@ -114,6 +114,53 @@
                 "type"
             ],
             "time": "2013-05-14 05:22:25"
+        },
+        {
+            "name": "hampus/stack-file",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ckhampus/StackFile.git",
+                "reference": "23e862dd8e90e2f3769c3e7ad850c867b28f8f6f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ckhampus/StackFile/zipball/23e862dd8e90e2f3769c3e7ad850c867b28f8f6f",
+                "reference": "23e862dd8e90e2f3769c3e7ad850c867b28f8f6f",
+                "shasum": ""
+            },
+            "require": {
+                "dflydev/canal": "~1.0",
+                "php": ">=5.3.0",
+                "symfony/http-foundation": "~2.4",
+                "symfony/http-kernel": "~2.4"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0.6",
+                "stack/callable-http-kernel": "1.0.*@dev"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Hampus\\Stack\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Cristian Hampus",
+                    "email": "contact@cristianhampus.se"
+                }
+            ],
+            "description": "A PHP port of Rack::File.",
+            "keywords": [
+                "file",
+                "stack"
+            ],
+            "time": "2014-03-17 20:07:50"
         },
         {
             "name": "psr/log",
@@ -523,16 +570,16 @@
     "packages-dev": [
         {
             "name": "phpunit/php-code-coverage",
-            "version": "2.0.1",
+            "version": "2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "23e6ac9513df2af67f9f713347f3e4bf4b59784c"
+                "reference": "2c20ba4872d09d1d3d7ceda5a0c5f82d9a8ff31f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/23e6ac9513df2af67f9f713347f3e4bf4b59784c",
-                "reference": "23e6ac9513df2af67f9f713347f3e4bf4b59784c",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/2c20ba4872d09d1d3d7ceda5a0c5f82d9a8ff31f",
+                "reference": "2c20ba4872d09d1d3d7ceda5a0c5f82d9a8ff31f",
                 "shasum": ""
             },
             "require": {
@@ -583,7 +630,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-03-07 16:03:14"
+            "time": "2014-03-17 10:25:49"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -765,16 +812,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "4.0.7",
+            "version": "4.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "726abb62e9ed37125cd5a75b01f3c0ed36050726"
+                "reference": "c7e9e4b1253142acda4cb86a7686db412684fe04"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/726abb62e9ed37125cd5a75b01f3c0ed36050726",
-                "reference": "726abb62e9ed37125cd5a75b01f3c0ed36050726",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c7e9e4b1253142acda4cb86a7686db412684fe04",
+                "reference": "c7e9e4b1253142acda4cb86a7686db412684fe04",
                 "shasum": ""
             },
             "require": {
@@ -836,7 +883,7 @@
                 "testing",
                 "xunit"
             ],
-            "time": "2014-03-12 15:09:38"
+            "time": "2014-03-17 15:17:30"
         },
         {
             "name": "phpunit/phpunit-mock-objects",
