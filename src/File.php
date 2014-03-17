@@ -143,9 +143,8 @@ class File implements HttpKernelInterface
 
             if (!$response->isNotModified($request)) {
                 $response->setContent($this->readRange($path, $start, $end));
+                $response->prepare($request);
             }
-
-            $response->prepare($request);
 
             return $response;
         }
